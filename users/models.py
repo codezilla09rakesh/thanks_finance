@@ -90,9 +90,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     state = models.ForeignKey(State, on_delete=models.SET_NULL, verbose_name="State", null=True, blank=True)
     strip_id = models.CharField(max_length=255, null=True, blank=True)
     visit_reason = models.CharField(max_length=250, choices=VISIT_REASON, null=True, blank=True, verbose_name="Visit Reason")
-    profil_pic = models.ImageField(upload_to="profile_pic/", null=True, blank=True, help_text=_("User profile picture"))
+    profile_pic = models.ImageField(upload_to="profile_pic/", null=True, blank=True, help_text=_("User profile picture"))
     created_at = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name=_("Created At"))
     modified_at = models.DateTimeField(auto_now=True, db_index=True, verbose_name=_("Modified At"))
+    reset_token = models.CharField(max_length=225, null=True, blank=True, verbose_name="Token For Reset Password")
 
     is_active = models.BooleanField(default=False,verbose_name="Active", help_text=_(
             "Designates whether this user should be treated as active."
@@ -137,7 +138,7 @@ class Transaction(BaseModel):
     transaction_id = models.CharField(max_length=255, null=True, blank=True)  
 
     def __str__(self):
-        return str(self.user.username)
+        return str(self.user.username)  
     
     class Meta:
         verbose_name_plural = "Transactions"

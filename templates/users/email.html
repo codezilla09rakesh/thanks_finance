@@ -1,0 +1,6 @@
+
+{% autoescape off %}
+Hi {{ user.fullname }},
+Please click on the link to Reset Your Password,
+http://192.168.1.143:8000{% url 'reset_password'%}?token={{token}}
+{% endautoescape %}
