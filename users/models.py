@@ -6,6 +6,8 @@ from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.utils.translation import ugettext_lazy as _
 
+from cities_light.models import Country, Region
+
 
 class BaseModel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -30,7 +32,6 @@ class UserManager(BaseUserManager):
         return user
         
     def create_superuser(self, username, password, **extra_fields):
-        # print("#####################",extra_fields)
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("is_active", True)
@@ -39,26 +40,6 @@ class UserManager(BaseUserManager):
         if extra_fields.get("is_superuser") is not True:
             raise ValueError("Superuser must have is_superuser=True.")
         return self._create_user(username, password, **extra_fields)
-
-
-class Country(BaseModel):
-    country = models.CharField(max_length=150, null=True, blank=True, verbose_name="City")
-
-    def __str__(self):
-        return self.country.capitalize()
-    
-    class Meta:
-        verbose_name_plural = "Countries"
-
-class State(BaseModel):
-    country = models.ForeignKey(Country, on_delete=models.CASCADE)
-    state = models.CharField(max_length=150, null=True, blank=True, verbose_name="City")
-
-    def __str__(self):
-        return self.state.capitalize()
-    
-    class Meta:
-        verbose_name_plural = "States"
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -87,7 +68,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     gender = models.CharField(max_length=200, null=True, blank=True, verbose_name="Gender", choices=GENDER_OPTIONS)
     bod = models.DateField(null=True, blank=True, verbose_name="Date of Birth")
     country = models.ForeignKey(Country, on_delete=models.SET_NULL, verbose_name="Country", null=True, blank=True)
-    state = models.ForeignKey(State, on_delete=models.SET_NULL, verbose_name="State", null=True, blank=True)
+    state = models.ForeignKey(Region, on_delete=models.SET_NULL, verbose_name="State", null=True, blank=True)
     strip_id = models.CharField(max_length=255, null=True, blank=True)
     visit_reason = models.CharField(max_length=250, choices=VISIT_REASON, null=True, blank=True, verbose_name="Visit Reason")
     profile_pic = models.ImageField(upload_to="profile_pic/", null=True, blank=True, help_text=_("User profile picture"))
@@ -153,6 +134,9 @@ class Subscriptions(BaseModel):
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE, verbose_name="Transaction")
     status = models.CharField(max_length=100, choices=SUBSCRIPTION_STATUS, default="Current")
     valid_till = models.DateField(blank=True, null=True)
+
+    class Meta:
+        verbose_name_plural = "Subscriptions"
 
     def __str__(self):
         return self.user.fullname() + "'s: " + self.plan.name + " Plan"

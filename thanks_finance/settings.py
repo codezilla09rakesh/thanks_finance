@@ -38,6 +38,8 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
+    "rest_framework_swagger",
+    'drf_yasg',
     'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -48,7 +50,7 @@ INSTALLED_APPS = [
     'users',
     'rest_framework',
     'oauth2_provider',
-    "rest_framework_swagger",
+    'cities_light',
      ]
 
 AUTH_USER_MODEL = 'users.User'
@@ -62,6 +64,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+
+URL_TYPE = "http://0.0.0.0:8000"
+URL_TYPE = "http://0.0.0.0:7000"
 
 
 ROOT_URLCONF = 'thanks_finance.urls'
@@ -78,6 +84,9 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
+            'libraries': {  # Adding this section should work around the issue.
+                'staticfiles': 'django.templatetags.static',
+            },
         },
     },
 ]
@@ -114,10 +123,59 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ]
+}
+
+SWAGGER_SETTINGS = {
+
+    'exclude_url_names': [],
+    'exclude_namespaces': [],
+    'api_version': '1.0',
+    'api_path': '/',
+    'relative_paths': False,
+    'enabled_methods': [
+        'get',
+        'post',
+        'put',
+        'patch',
+        'delete'
+    ],
+    'api_key': '',
+    'is_authenticated': False,
+    'is_superuser': False,
+    'unauthenticated_user': 'django.contrib.auth.models.AnonymousUser',
+    'permission_denied_handler': None,
+    'resource_access_handler': None,
+    'base_path':'helloreverb.com/docs',
+    'info': {
+        'contact': 'apiteam@wordnik.com',
+        'description': 'This is a sample server Petstore server. '
+                       'You can find out more about Swagger at '
+                       '<a href="http://swagger.wordnik.com">'
+                       'http://swagger.wordnik.com</a> '
+                       'or on irc.freenode.net, #swagger. '
+                       'For this sample, you can use the api key '
+                       '"special-key" to test '
+                       'the authorization filters',
+        'license': 'Apache 2.0',
+        'licenseUrl': 'http://www.apache.org/licenses/LICENSE-2.0.html',
+        'termsOfServiceUrl': 'http://helloreverb.com/terms/',
+        'title': 'Swagger Sample App',
+    },
+    'doc_expansion': 'none',
+}
+
 LOGIN_URL='/admin/login/'
 
 CLIENT_SECRET= os.getenv("CLIENT_SECRET")
 CLIENT_ID = os.getenv("CLIENT_ID")
+
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
@@ -137,14 +195,19 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'codezilla.rakesh@gmail.com'
-EMAIL_HOST_PASSWORD = 'rakesh@321'
+EMAIL_HOST_USER = os.getenv("EMAIL_ID")
+EMAIL_HOST_PASSWORD = os.getenv("PASSWORD")
 
 
 
@@ -156,7 +219,7 @@ JAZZMIN_SETTINGS={
     "site_header": "Thanks Finance",
 
     # # square logo to use for your site, must be present in static files, used for favicon and brand on top left
-    # "site_logo": "books/img/logo.png",
+    "site_logo": "logo.jpg",
 
     # Welcome text on the login screen
     "welcome_sign": "Welcome to the Thanks Finance",
@@ -190,7 +253,22 @@ JAZZMIN_SETTINGS={
         # App with dropdown menu to all its models pages (Permissions checked against models)
         {"app": "books"},
     ],
+    # Custom icons for side menu apps/models See https://fontawesome.com/icons?d=gallery&m=free
+    # for a list of icon classes
+    "icons": {
+        "cities_light.country": "fas fa-globe-americas",
+        "cities_light.region": "fas fa-map-marker-alt",
+        "users.country": "fas fa-globe-americas",
+        "users.state":"fas fa-map-marker-alt",
+        "users.plan":"fas fa-map",
+        "users.subscriptions":"fas fa-clock",
+        "users.transaction":"fas fa-dollar-sign",
+        "users.user":"fas fa-users",
+    },
+}
 
+JAZZMIN_SETTINGS["show_ui_builder"] = True
 
-
+JAZZMIN_UI_TWEAKS = {
+    "theme": "simplex",
 }
