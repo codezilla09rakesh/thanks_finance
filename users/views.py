@@ -1,16 +1,18 @@
 import uuid
 import requests
 import re
-from users.models import User, Plan, Subscriptions, Transaction
-
 from datetime import datetime, timezone
 
+from django.shortcuts import render
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 
+from users.models import User, Plan, Subscriptions, Transaction, BookMark, Offer
 
-from users.serializers import RegistrationSerializer, LoginSerializer, PasswordChangeSerializer, UserSerializer, CountrySerializer, StateSerializer, PlanSerializer, TransactionSerializer, SubscriptionsSerializer, UpdateSubscriptionsSerializer
+
+from users.serializers import RegistrationSerializer, LoginSerializer, PasswordChangeSerializer, UserSerializer, CountrySerializer
+from users.serializers import StateSerializer, PlanSerializer, TransactionSerializer, SubscriptionsSerializer, UpdateSubscriptionsSerializer, BookMarkSerializer, OfferSerializer
 from thanks_finance import settings
 
 from rest_framework.viewsets import ModelViewSet
@@ -231,18 +233,19 @@ class CountryList(ModelViewSet):
     serializer_class = CountrySerializer
     queryset = Country.objects.all()
 
-    def retrieve(self, request, pk=None, *args, **kwargs):
+    def retrieve(self, request, id=None, *args, **kwargs):
         """
         params: id = country_id
         return: id, country name
         """
-        country = Country.objects.filter(pk = id)
-        if country:
-            serializer = CountrySerializer(country, many=True)
+        try:
+            country = Country.objects.get(pk = id)
+            serializer = CountrySerializer(country)
             data = serializer.data
-        else:
-            return Response(data={"massage":"Country could not found"}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(data=data, status=status.HTTP_200_OK)
+            return Response(data=data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(data=str(e), status=status.HTTP_404_NOT_FOUND)
+
 
     def list(self, request, *args, **kwargs):
         """
@@ -374,6 +377,27 @@ class PlansView(ModelViewSet):
         else:
             return Response(data={"message":"plan_id is none"})
 
+
+class OfferView(ModelViewSet):
+    serializer_class = OfferSerializer
+    queryset = Offer.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        offer = Offer.objects.all()
+        serializer = OfferSerializer(offer, many=True)
+        data = serializer.data
+        return Response(data=data, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, id=None, *args, **kwargs):
+        try:
+            offer = Offer.objects.get(id = id)
+            serializer = OfferSerializer(offer)
+            data = serializer.data
+            return Response(data=data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(data={"message":str(e)}, status=status.HTTP_404_NOT_FOUND)
+
+
 class SubscriptionsView(ModelViewSet):
     serializer_class = SubscriptionsSerializer
     queryset = Subscriptions.objects.all()
@@ -415,7 +439,7 @@ class SubscriptionsView(ModelViewSet):
             data = request.data
             try:
                 subscription = Subscriptions.objects.get(id=id, user=user)
-                serializer = UpdateSubscriptionsSerializer(subscription, data=request.data, partial=True)
+                serializer = UpdateSubscriptionsSerializer(subscription, data=data, partial=True)
                 if serializer.is_valid():
                     serializer.save()
                     return Response(data={"message":"Successfully Updated "})
@@ -456,5 +480,44 @@ class TransactionView(ModelViewSet):
                 return Response(data={'message': str(e)}, status=status.HTTP_404_NOT_FOUND)
 
 
+class BookMarkView(ModelViewSet):
+    serializer_class = BookMarkSerializer
+    queryset = BookMark.objects.all()
+    permission_classes = [IsAuthenticated]
 
+    def create(self, request, *args, **kwargs):
+        """
+        params: request => user_id, stock_id
+        return => successfully bookmark
+        """
+        serializer = BookMarkSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(data={"message": "Successfully Bookmark"}, status=status.HTTP_201_CREATED)
+        else:
+            return Response(data={"message": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    def list(self, request, *args, **kwargs):
+        """
+        return => stock_id
+        """
+        user = request.user
+        stock = BookMark.objects.filter(user = user)
+        if not stock:
+            return Response(data={"message":"No any stock bookmark"})
+        serializer = BookMarkSerializer(stock, many=True)
+        data = serializer.data
+        return Response(data=data, status=status.HTTP_200_OK)
+
+    def destroy(self, request, id=None, *args, **kwargs):
+        """
+        params: request => id
+        return : stock are remove from bookmark
+        """
+        user = request.user
+        if id:
+            BookMark.objects.get(id=id, user=user).delete()
+            return Response(data={"message":"stock are remove from bookmark"}, status=status.HTTP_200_OK)
+        else:
+            return Response(data={"message":"you do not pass any id"})
 

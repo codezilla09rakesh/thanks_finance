@@ -23,7 +23,6 @@ urlpatterns=[
 
     path('profile/',views.Profile.as_view({'get':'retrieve', 'put':'update'}), name="profile"),
 
-
     path('plans/',views.PlansView.as_view({'get':'list'}), name='plans_list'),
     path('plans/<int:id>/', views.PlansView.as_view({'get':'retrieve'}), name='plan'),
 
@@ -32,4 +31,11 @@ urlpatterns=[
 
     path('transactions/', views.TransactionView.as_view({'get':'list'}), name="transaction_list"),
     path('transactions/<int:id>', views.TransactionView.as_view({'get':'retrieve'}), name="transaction"),
+
+    path('bookmarks/', views.BookMarkView.as_view({"post":"create","get":"list"}), name="bookmark"),
+    path('bookmarks/<int:id>/', views.BookMarkView.as_view({"delete":"destroy"}), name="bookmark_destroy"),
+
+    path('offers/', views.OfferView.as_view({'get':'list'}), name="offer_list"),
+    path('offers/<int:id>/', views.OfferView.as_view({'get':'retrieve'}), name="offer"),
+
     ]

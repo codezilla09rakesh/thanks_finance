@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from users.models import User, Plan, Transaction, Subscriptions
+from users.models import User, Plan, Transaction, Subscriptions, BookMark, Offer
 from cities_light.models import Country, Region
 
 class ResetSerializer(serializers.Serializer):
@@ -16,15 +16,21 @@ class StateSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'country']
 
 class RegistrationSerializer(serializers.ModelSerializer):
+    country = CountrySerializer()
+    state = StateSerializer()
     class Meta:
         model = User
         fields = ['username', 'password', 'first_name', 'last_name', 'email', 'gender', 'bod', 'country', 'state', 'profile_pic', 'visit_reason']
+        depth = 1
 
-    # def create(self, validated_data):
-    #     user = super(RegistrationSerializer, self).create(validated_data)
-    #     user.set_password(validated_data['password'])
-    #     user.save()
-    #     return user
+    def create(self, validated_data):
+        password =validated_data['password']
+        if not len(password) > 6:
+            raise Exception("password should be equal and greater then 6")
+        user = super(RegistrationSerializer, self).create(validated_data)
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=150, required=True, write_only=True, allow_null=False)
@@ -35,6 +41,8 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'email', 'bod', 'country', 'state', 'profile_pic']
+        depth = 1
+
 
 class PasswordChangeSerializer(serializers.Serializer):
     """
@@ -62,3 +70,13 @@ class UpdateSubscriptionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscriptions
         fields = ['plan', 'transaction', 'status', 'valid_till']
+
+class BookMarkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BookMark
+        fields = "__all__"
+
+class OfferSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Offer
+        fields = "__all__"

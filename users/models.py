@@ -61,7 +61,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)   
-    username = models.CharField(max_length=100, null=True, blank=True, unique=True)
+    username = models.CharField(max_length=100, unique=True)
     email = models.EmailField(null=True, blank=True, verbose_name=_("Email Address"))
     first_name = models.CharField(max_length=200, null=True, blank=True, verbose_name=_("Name"))
     last_name = models.CharField(max_length=200, null=True, blank=True, verbose_name="Surname")
@@ -110,7 +110,26 @@ class Plan(BaseModel):
     
     class Meta:
         verbose_name_plural = 'Plans'
-    
+
+
+class Offer(BaseModel):
+    name = models.CharField(max_length=225, null=True, blank=True, verbose_name=_("Offer Title"))
+    description = models.TextField(null=True, blank=True, verbose_name=_("Plan Description"))
+    valid = models.DateField(null=True, blank=True, verbose_name=_("Validity"), help_text="Validity In Month")
+
+    class Meta:
+        verbose_name_plural="Offers"
+
+    def __str__(self):
+        return self.name
+
+class PlanOffer(BaseModel):
+    offer = models.ForeignKey(Offer, on_delete=models.SET_NULL ,null=True, blank=True, verbose_name=_("Offer"))
+    plan = models.ForeignKey(Plan, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_("Plan"))
+
+    def __str__(self):
+        return str(self.offer.name)
+
 
 class Transaction(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -142,7 +161,12 @@ class Subscriptions(BaseModel):
         return self.user.fullname() + "'s: " + self.plan.name + " Plan"
 
 
+class BookMark(BaseModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="User")
+    stock = models.CharField(max_length=225, null=True, blank=True, verbose_name="Stock Id")
 
+    def __str__(self):
+        return self.user.fullname()
 
-
-
+    class Meta:
+        verbose_name_plural = "BookMarks"

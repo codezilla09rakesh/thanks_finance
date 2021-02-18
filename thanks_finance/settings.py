@@ -66,6 +66,10 @@ MIDDLEWARE = [
 ]
 
 
+TEMPLATES_DIRS =(
+    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'templates')
+)
+
 URL_TYPE = "http://0.0.0.0:8000"
 URL_TYPE = "http://0.0.0.0:7000"
 
@@ -196,7 +200,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 # STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
+
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -228,31 +233,11 @@ JAZZMIN_SETTINGS={
     "copyright": "Thanks Finance Ltd",
 
     # The model admin to search from the search bar, search bar omitted if excluded
-    "search_model": "auth.User",
+    # "search_model": "[auth.User, city_light]",
 
     # Field name on user model that contains avatar image
     "user_avatar": None,
 
-
-        ############
-    # Top Menu #
-    ############
-
-    # Links to put along the top menu
-    "topmenu_links": [
-
-        # Url that gets reversed (Permissions can be added)
-        {"name": "Home",  "url": "admin:index", "permissions": ["auth.view_user"]},
-
-        # external url that opens in a new window (Permissions can be added)
-        # {"name": "Support", "url": "https://github.com/farridav/django-jazzmin/issues", "new_window": True},
-
-        # model admin to link to (Permissions checked against model)
-        {"model": "auth.User"},
-
-        # App with dropdown menu to all its models pages (Permissions checked against models)
-        {"app": "books"},
-    ],
     # Custom icons for side menu apps/models See https://fontawesome.com/icons?d=gallery&m=free
     # for a list of icon classes
     "icons": {
@@ -264,6 +249,7 @@ JAZZMIN_SETTINGS={
         "users.subscriptions":"fas fa-clock",
         "users.transaction":"fas fa-dollar-sign",
         "users.user":"fas fa-users",
+        "users.bookmark":"far fa-bookmark",
     },
 }
 
