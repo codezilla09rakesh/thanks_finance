@@ -60,6 +60,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         ('Other', _("Other Reason.")),
     )
 
+    # USER_SCOPE=(
+    #     (('All operation do'), _("All operation do")),
+    #     (('Basic Plan'), _('Basic Plan')),
+    #     ((''))
+    # )
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)   
     username = models.CharField(max_length=100, unique=True)
     email = models.EmailField(null=True, blank=True, verbose_name=_("Email Address"))
@@ -75,6 +81,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     created_at = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name=_("Created At"))
     modified_at = models.DateTimeField(auto_now=True, db_index=True, verbose_name=_("Modified At"))
     reset_token = models.CharField(max_length=225, null=True, blank=True, verbose_name="Token For Reset Password")
+    # scope = models.CharField(max_length=225, null=True, blank=True, verbose_name=_("Scope"))
 
     is_active = models.BooleanField(default=False,verbose_name="Active", help_text=_(
             "Designates whether this user should be treated as active."
@@ -102,7 +109,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class Plan(BaseModel):
     name = models.CharField(max_length=225, null=True, blank=True, verbose_name="Plan Name")
-    amount = models.PositiveIntegerField(null=True, blank=True, verbose_name="Plan Price")
+    price = models.PositiveIntegerField(null=True, blank=True, verbose_name="Plan Price")
     description = models.TextField(null=True, blank=True, verbose_name=_("Plan Description"))
 
     def __str__(self):
@@ -162,8 +169,9 @@ class Subscriptions(BaseModel):
 
 
 class BookMark(BaseModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="User")
-    stock = models.CharField(max_length=225, null=True, blank=True, verbose_name="Stock Id")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_("User"))
+    stock = models.CharField(max_length=225, null=True, blank=True, verbose_name=_("Stock Id"))
+    category = models.CharField(max_length=225, null=True, blank=True, verbose_name=_("Category Id"))
 
     def __str__(self):
         return self.user.fullname()

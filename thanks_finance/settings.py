@@ -127,13 +127,27 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
+
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
-    ]
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+    )
 }
+
+# OAUTH2_PROVIDER = {
+#     # this is the list of available scopes
+#     'SCOPES': {'administration': 'All operation do',
+#                'Basic':'basice user',
+#                'Premium':'premium user',
+#                'Professional':'professional user',
+#                }
+# }
 
 SWAGGER_SETTINGS = {
 

@@ -15,6 +15,8 @@ from users.serializers import RegistrationSerializer, LoginSerializer, PasswordC
 from users.serializers import StateSerializer, PlanSerializer, TransactionSerializer, SubscriptionsSerializer, UpdateSubscriptionsSerializer, BookMarkSerializer, OfferSerializer
 from thanks_finance import settings
 
+from oauth2_provider.decorators import protected_resource
+
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -46,6 +48,7 @@ class SignUp(ModelViewSet):
 
 
 class LoginView(ObtainAuthToken, APIView):
+
     def post(self, request, *args, **kwargs):
         """
         params: request => username, password
@@ -233,18 +236,18 @@ class CountryList(ModelViewSet):
     serializer_class = CountrySerializer
     queryset = Country.objects.all()
 
-    def retrieve(self, request, id=None, *args, **kwargs):
-        """
-        params: id = country_id
-        return: id, country name
-        """
-        try:
-            country = Country.objects.get(pk = id)
-            serializer = CountrySerializer(country)
-            data = serializer.data
-            return Response(data=data, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response(data=str(e), status=status.HTTP_404_NOT_FOUND)
+    # def retrieve(self, request, id=None, *args, **kwargs):
+    #     """
+    #     params: id = country_id
+    #     return: id, country name
+    #     """
+    #     try:
+    #         country = Country.objects.get(pk = id)
+    #         serializer = CountrySerializer(country)
+    #         data = serializer.data
+    #         return Response(data=data, status=status.HTTP_200_OK)
+    #     except Exception as e:
+    #         return Response(data=str(e), status=status.HTTP_404_NOT_FOUND)
 
 
     def list(self, request, *args, **kwargs):
@@ -261,18 +264,18 @@ class StateList(ModelViewSet):
     serializer_class = StateSerializer
     queryset = Country.objects.all()
 
-    def retrieve(self, request, pk=None, *args, **kwargs):
-        """
-        params: id = state_id
-        return: id, state_name
-        """
-        state = Region.objects.filter(pk = id)
-        if state:
-            serializer = StateSerializer(state, many=True)
-            data = serializer.data
-        else:
-            return Response(data={"massage":"state could not found"}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(data=data, status=status.HTTP_200_OK)
+    # def retrieve(self, request, pk=None, *args, **kwargs):
+    #     """
+    #     params: id = state_id
+    #     return: id, state_name
+    #     """
+    #     state = Region.objects.filter(pk = id)
+    #     if state:
+    #         serializer = StateSerializer(state, many=True)
+    #         data = serializer.data
+    #     else:
+    #         return Response(data={"massage":"state could not found"}, status=status.HTTP_400_BAD_REQUEST)
+    #     return Response(data=data, status=status.HTTP_200_OK)
 
     def list(self, request, *args, **kwargs):
         """
@@ -315,6 +318,7 @@ class CountryAndState(GenericAPIView):
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
+
 class Profile(ModelViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
@@ -326,7 +330,7 @@ class Profile(ModelViewSet):
         """
         user = request.user
         try:
-            user = User.objects.get(username=user)
+            user = User.objects.get(id=user.id)
             serializer = UserSerializer(user)
             data = serializer.data
             return Response(data = data, status=status.HTTP_200_OK)
@@ -335,11 +339,12 @@ class Profile(ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         """
-        params: request =>  first_name, last_name, email, gender, bod, country, state, profile_pic, visit_reason
+        params: request => first_name, last_name, email, gender, bod, country, state, profile_pic, visit_reason
+        query params : deactive
         return : message => Profile Update
         """
         user = request.user
-        user = User.objects.get(username = user)
+        user = User.objects.get(id = user.id)
         serializer = UserSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -347,11 +352,48 @@ class Profile(ModelViewSet):
         else:
             return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
+    def destroy(self, request, *args, **kwargs):
+        user = request.user
+        user = User.objects.get(id = user.id)
+        user.is_active=False
+        r = requests.post(
+            settings.URL_TYPE + "/o/revoke_token/",
+            data={
+                "token": request.data["token"],
+                "client_id": settings.CLIENT_ID,
+                "client_secret": settings.CLIENT_SECRET,
+            },)
+        if not r.status_code == 400:
+            user.save()
+            return Response(r.json())
+        else:
+            return Response(data={"message":"Account has not revoked"})
 
 class PlansView(ModelViewSet):
     serializer_class = PlanSerializer
     queryset = Plan.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        serializer = PlanSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(data={"message":"Plan is created"}, status=status.HTTP_200_OK)
+        else:
+            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, id=None, *args, **kwargs):
+        try:
+            plan = Plan.objects.get(id=id)
+            serializer = PlanSerializer(plan, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(data={"message":"plan has updated"}, status=status.HTTP_200_OK)
+            else:
+                return Response(data=serializer.data, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(data=str(e), status=status.HTTP_404_NOT_FOUND)
+
+
 
     def list(self, request, *args, **kwargs):
         """
@@ -376,6 +418,9 @@ class PlansView(ModelViewSet):
                 return Response(data=str(e), status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(data={"message":"plan_id is none"})
+
+
+
 
 
 class OfferView(ModelViewSet):
@@ -408,7 +453,7 @@ class SubscriptionsView(ModelViewSet):
         return =>list of user_id, plan_id, transaction_id, status, valid_till
         """
         user = request.user
-        subscriptions = Subscriptions.objects.filter(user = user)
+        subscriptions = Subscriptions.objects.filter(user = user.id)
         serializer = SubscriptionsSerializer(subscriptions, many=True)
         data = serializer.data
         return Response(data=data, status=status.HTTP_200_OK)
@@ -420,7 +465,7 @@ class SubscriptionsView(ModelViewSet):
         user = request.user
         if id:
             try:
-                subscription = Subscriptions.objects.get(id=id, user=user)
+                subscription = Subscriptions.objects.get(id=id, user=user.id)
                 serializer = SubscriptionsSerializer(subscription)
                 data = serializer.data
                 return Response(data=data, status=status.HTTP_200_OK)
@@ -438,7 +483,7 @@ class SubscriptionsView(ModelViewSet):
         if id:
             data = request.data
             try:
-                subscription = Subscriptions.objects.get(id=id, user=user)
+                subscription = Subscriptions.objects.get(id=id, user=user.id)
                 serializer = UpdateSubscriptionsSerializer(subscription, data=data, partial=True)
                 if serializer.is_valid():
                     serializer.save()
@@ -473,7 +518,7 @@ class TransactionView(ModelViewSet):
         user = request.user
         if id:
             try:
-                transaction = Transaction.objects.get(id=id, user=user)
+                transaction = Transaction.objects.get(id=id, user=user.id)
                 serializer = TransactionSerializer(transaction, many=True)
                 return Response(data=serializer.data, status=status.HTTP_200_OK)
             except Exception as e:
@@ -487,7 +532,7 @@ class BookMarkView(ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         """
-        params: request => user_id, stock_id
+        params: request => user_id, stock_id, category
         return => successfully bookmark
         """
         serializer = BookMarkSerializer(data=request.data)
@@ -502,7 +547,7 @@ class BookMarkView(ModelViewSet):
         return => stock_id
         """
         user = request.user
-        stock = BookMark.objects.filter(user = user)
+        stock = BookMark.objects.filter(user = user.id)
         if not stock:
             return Response(data={"message":"No any stock bookmark"})
         serializer = BookMarkSerializer(stock, many=True)
@@ -515,8 +560,9 @@ class BookMarkView(ModelViewSet):
         return : stock are remove from bookmark
         """
         user = request.user
+        print('id',id)
         if id:
-            BookMark.objects.get(id=id, user=user).delete()
+            BookMark.objects.get(id=id, user=user.id).delete()
             return Response(data={"message":"stock are remove from bookmark"}, status=status.HTTP_200_OK)
         else:
             return Response(data={"message":"you do not pass any id"})

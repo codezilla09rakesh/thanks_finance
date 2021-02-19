@@ -38,6 +38,8 @@ class LoginSerializer(serializers.Serializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    country = CountrySerializer()
+    state = StateSerializer()
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'email', 'bod', 'country', 'state', 'profile_pic']

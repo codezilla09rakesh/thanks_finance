@@ -13,29 +13,31 @@ urlpatterns=[
     path('change_password/', views.ChangePassword.as_view(), name='change_password'),
 
     path('countries/', views.CountryList.as_view({'get':'list'}), name="countries_list"),
-    path('countries/<int:id>/', views.CountryList.as_view({'get':'retrieve'}), name="country"),
+    # path('countries/<int:id>/', views.CountryList.as_view({'get':'retrieve'}), name="country"),
 
     path('states/', views.StateList.as_view({'get':'list'}), name="state_list"),
-    path('states/<int:id>/', views.StateList.as_view({'get':'retrieve'}), name="state"),
+    # path('states/<int:id>/', views.StateList.as_view({'get':'retrieve'}), name="state"),
 
     path('countries/<int:country_id>/states/<int:state_id>/',views.CountryAndState.as_view(), name="get_state"),
     path('state-list/country/<int:country_id>/',views.CountryAndState.as_view(), name="state_list"),
 
     path('profile/',views.Profile.as_view({'get':'retrieve', 'put':'update'}), name="profile"),
+    # path('profile/', views.Profile.as_view({'put':"update"}), name="account_deactive"),
 
-    path('plans/',views.PlansView.as_view({'get':'list'}), name='plans_list'),
-    path('plans/<int:id>/', views.PlansView.as_view({'get':'retrieve'}), name='plan'),
+
+    path('plans/',views.PlansView.as_view({'get':'list','post':'create'}), name='plans_list'),
+    path('plans/<str:id>/', views.PlansView.as_view({'get':'retrieve','put':'update'}), name='plan'),
 
     path('subscriptions/',views.SubscriptionsView.as_view({'get':'list'}), name='subscriptions_list'),
-    path('subscriptions/<int:id>/', views.SubscriptionsView.as_view({'get':'retrieve', 'put':'update'}), name='subscription'),
+    path('subscriptions/<str:id>/', views.SubscriptionsView.as_view({'get':'retrieve', 'put':'update'}), name='subscription'),
 
     path('transactions/', views.TransactionView.as_view({'get':'list'}), name="transaction_list"),
-    path('transactions/<int:id>', views.TransactionView.as_view({'get':'retrieve'}), name="transaction"),
+    path('transactions/<str:id>', views.TransactionView.as_view({'get':'retrieve'}), name="transaction"),
 
     path('bookmarks/', views.BookMarkView.as_view({"post":"create","get":"list"}), name="bookmark"),
-    path('bookmarks/<int:id>/', views.BookMarkView.as_view({"delete":"destroy"}), name="bookmark_destroy"),
+    path('bookmarks/<str:id>/', views.BookMarkView.as_view({"delete":"destroy"}), name="bookmark_destroy"),
 
     path('offers/', views.OfferView.as_view({'get':'list'}), name="offer_list"),
-    path('offers/<int:id>/', views.OfferView.as_view({'get':'retrieve'}), name="offer"),
+    path('offers/<str:id>/', views.OfferView.as_view({'get':'retrieve'}), name="offer"),
 
     ]
