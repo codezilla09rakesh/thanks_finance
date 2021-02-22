@@ -47,10 +47,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'users',
+    # 'photoapp'
+    
     'rest_framework',
     'oauth2_provider',
     'cities_light',
+    'multiselectfield'
      ]
 
 AUTH_USER_MODEL = 'users.User'

@@ -7,6 +7,7 @@ from django.contrib.auth.models import PermissionsMixin
 from django.utils.translation import ugettext_lazy as _
 
 from cities_light.models import Country, Region
+from multiselectfield import MultiSelectField
 
 
 class BaseModel(models.Model):
@@ -76,7 +77,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     country = models.ForeignKey(Country, on_delete=models.SET_NULL, verbose_name="Country", null=True, blank=True)
     state = models.ForeignKey(Region, on_delete=models.SET_NULL, verbose_name="State", null=True, blank=True)
     strip_id = models.CharField(max_length=255, null=True, blank=True)
-    visit_reason = models.CharField(max_length=250, choices=VISIT_REASON, null=True, blank=True, verbose_name="Visit Reason")
+    visit_reason = MultiSelectField(choices=VISIT_REASON)
     profile_pic = models.ImageField(upload_to="profile_pic/", null=True, blank=True, help_text=_("User profile picture"))
     created_at = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name=_("Created At"))
     modified_at = models.DateTimeField(auto_now=True, db_index=True, verbose_name=_("Modified At"))
